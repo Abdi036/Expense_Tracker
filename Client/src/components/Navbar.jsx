@@ -19,6 +19,12 @@ const Navbar = ({ userName, profilePic }) => {
         <Link to="/" className="text-gray-700 hover:text-blue-500">
           Home
         </Link>
+        <Link to="/profile" className="text-gray-700 hover:text-blue-500">
+          Profile
+        </Link>
+        <Link to="/settings" className="text-gray-700 hover:text-blue-500">
+          Settings
+        </Link>
         <Link to="/logout" className="text-gray-700 hover:text-blue-500">
           Logout
         </Link>
