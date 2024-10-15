@@ -1,39 +1,38 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useAuth } from "../utils/AuthContext"; // Adjust the path as per your file structure
+import { Link } from "react-router-dom"; // Import Link from react-router-dom for navigation
 
 const Signup = () => {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { signupUser } = useAuth(); // Import the signup function
+  const [error, setError] = useState(null); // State for handling errors
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null); // Clear any previous errors
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
-    console.log({ name, email, password });
+
+    try {
+      // Call the signup function from the Auth context
+      await signupUser(email, password);
+    } catch (err) {
+      setError(err.message); // Set error if sign-up fails
+    }
   };
 
   return (
     <div className="flex justify-center items-center h-auto bg-gray-100">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6 mt-28">
         <h2 className="text-2xl font-bold mb-6 text-center">Signup</h2>
+        {error && <p className="text-red-500 text-center">{error}</p>}{" "}
+        {/* Error message */}
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-bold mb-2" htmlFor="name">
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
           <div className="mb-4">
             <label className="block text-sm font-bold mb-2" htmlFor="email">
               Email
@@ -83,14 +82,12 @@ const Signup = () => {
             Signup
           </button>
         </form>
-        <div className="text-center mt-4">
-          <p className="text-sm">
-            Already have an account?{" "}
-            <Link to="/" className="text-blue-600 hover:underline">
-              Log in here
-            </Link>
-          </p>
-        </div>
+        <p className="text-sm text-center mt-4">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-500 hover:underline">
+            Login
+          </Link>
+        </p>
       </div>
     </div>
   );

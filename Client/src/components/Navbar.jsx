@@ -1,34 +1,56 @@
 /* eslint-disable react/prop-types */
 import { Link } from "react-router-dom";
+import { useAuth } from "../utils/AuthContext"; // Ensure this path is correct
 
-const Navbar = ({ userName, profilePic }) => {
+const Navbar = () => {
+  const { user, logoutUser } = useAuth();
+
   return (
     <nav className="bg-white shadow-md p-4 mb-20 flex items-center justify-between fixed z-10 w-full">
       <div className="flex items-center">
-        {/* Profile Picture */}
-        <img
-          src={profilePic}
-          alt="Profile"
-          className="w-10 h-10 rounded-full mr-2 border-2 border-blue-500"
-        />
-        {/* User Name */}
-        <span className="text-lg font-semibold">{userName}</span>
+        {user ? (
+          <>
+            {/* Profile Picture */}
+            <img
+              src={user.avatarUrl}
+              alt="Profile"
+              className="w-10 h-10 rounded-full mr-2 border-2 border-blue-500"
+            />
+            {/* User Name */}
+            <span className="text-lg font-semibold">{user.name}</span>
+          </>
+        ) : (
+          <span className="text-lg font-semibold">Welcome</span>
+        )}
       </div>
+
       {/* Links */}
       <div className="hidden md:flex space-x-4">
         <Link to="/" className="text-gray-700 hover:text-blue-500">
           Home
         </Link>
-        <Link to="/profile" className="text-gray-700 hover:text-blue-500">
-          Profile
-        </Link>
-        <Link to="/settings" className="text-gray-700 hover:text-blue-500">
-          Settings
-        </Link>
-        <Link to="/logout" className="text-gray-700 hover:text-blue-500">
-          Logout
-        </Link>
+        {user ? (
+          <>
+            <Link to="/profile" className="text-gray-700 hover:text-blue-500">
+              Profile
+            </Link>
+            <Link to="/settings" className="text-gray-700 hover:text-blue-500">
+              Settings
+            </Link>
+            <button
+              onClick={logoutUser}
+              className="text-gray-700 hover:text-blue-500"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <Link to="/login" className="text-gray-700 hover:text-blue-500">
+            Login
+          </Link>
+        )}
       </div>
+
       {/* Mobile Menu Button */}
       <div className="md:hidden">
         <button className="text-gray-700 focus:outline-none">

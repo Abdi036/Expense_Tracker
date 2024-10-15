@@ -7,9 +7,10 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import ProtectedRoutes from "./utils/ProtectedRoutes";
 import { AuthProvider } from "./utils/AuthContext";
+
 const App = () => {
-  const userName = "John Doe"; // Replace with actual user name
-  const profilePic = "https://via.placeholder.com/150"; // Replace with actual profile picture URL
+  const userName = "John Doe";
+  const profilePic = "https://via.placeholder.com/150";
 
   return (
     <Router>
