@@ -3,6 +3,10 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 
+// Import the auth routes
+const userRoutes = require("./routes/userRoutes");
+const globalErrorHandler = require("./controllers/errorController");
+
 dotenv.config();
 
 const app = express();
@@ -12,6 +16,12 @@ const PORT = process.env.PORT || 8000;
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// Global Error Handling Middleware
+app.use(globalErrorHandler);
+
+// Use the auth routes
+app.use("/api/v1/auth", userRoutes);
 
 // Connect to MongoDB using mongoose
 mongoose
