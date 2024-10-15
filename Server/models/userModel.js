@@ -75,6 +75,20 @@ userSchema.methods.createPasswordResetToken = function () {
   return resetToken;
 };
 
+// Add this method to your user schema
+userSchema.methods.changedPasswordAfter = function (JWTiat) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    return JWTiat < changedTimestamp; // return true if password was changed after token was issued
+  }
+
+  // If there is no password changed timestamp, the password has not changed
+  return false;
+};
+
 // Create the User model using the user schema
 const User = mongoose.model("User", userSchema);
 
