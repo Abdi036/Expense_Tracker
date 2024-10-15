@@ -105,32 +105,39 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-// resetPassword
 exports.resetPassword = catchAsync(async (req, res, next) => {
+  // Hash the token from the request params
   const hashedToken = crypto
     .createHash("sha256")
     .update(req.params.token)
     .digest("hex");
 
+  console.log("Received token:", req.params.token);
+  console.log("Hashed token:", hashedToken);
+
+  // Find the user with the hashed token and check if the token is still valid
   const user = await User.findOne({
     passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() },
+    passwordResetExpires: { $gt: Date.now() }, // Check if the token is still valid
   });
 
   if (!user) {
     return next(new AppError("Token is invalid or has expired", 400));
   }
 
-  // Check if passwords match
+  // Check if the passwords match
   if (req.body.password !== req.body.confirmPassword) {
     return next(new AppError("Passwords do not match", 400));
   }
 
-  user.password = req.body.password; // Make sure to hash this in your user model's pre-save hook
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
+  // Update the user's password
+  user.password = req.body.password;
+  user.confirmPassword = req.body.confirmPassword;
+  user.passwordResetToken = undefined; // Clear the reset token
+  user.passwordResetExpires = undefined; // Clear the expiration time
   await user.save();
 
+  // Generate a new token for the user
   const token = generateToken(user._id);
 
   res.status(200).json({
