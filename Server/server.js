@@ -10,25 +10,23 @@ const globalErrorHandler = require("./controllers/errorController");
 dotenv.config();
 
 const app = express();
-
 const PORT = process.env.PORT || 8000;
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Global Error Handling Middleware
-app.use(globalErrorHandler);
-
 // Use the auth routes
 app.use("/api/v1/auth", userRoutes);
+
+// Global Error Handling Middleware
+app.use(globalErrorHandler); // Make sure this is last
 
 // Connect to MongoDB using mongoose
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("Database connected Successfully");
-
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });

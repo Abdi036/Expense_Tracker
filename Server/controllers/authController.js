@@ -35,14 +35,14 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // Check if both password and email exist
   if (!email || !password) {
-    return next(new AppError("All fields are required", 400)); 
+    return next(new AppError("All fields are required", 400));
   }
 
   // Check if user exists and password is correct
   const user = await User.findOne({ email }).select("+password");
 
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError("Invalid email or password", 401)); 
+    return next(new AppError("Invalid email or password", 401));
   }
 
   // Generate token if everything is okay
