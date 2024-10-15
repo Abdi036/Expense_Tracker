@@ -10,8 +10,7 @@ const globalErrorHandler = require("./controllers/errorController");
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
-
+const PORT = parseInt(process.env.PORT || 8000);
 // Middlewares
 app.use(cors());
 app.use(express.json());
@@ -20,7 +19,7 @@ app.use(express.json());
 app.use("/api/v1/auth", userRoutes);
 
 // Global Error Handling Middleware
-app.use(globalErrorHandler); // Make sure this is last
+app.use(globalErrorHandler);
 
 // Connect to MongoDB using mongoose
 mongoose
