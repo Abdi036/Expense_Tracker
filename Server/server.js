@@ -20,6 +20,8 @@ app.use("/api/v1/auth", userRoutes);
 
 // Global Error Handling Middleware
 app.use(globalErrorHandler);
+app.use('/uploads', express.static('uploads'));
+
 
 // Connect to MongoDB using mongoose
 mongoose

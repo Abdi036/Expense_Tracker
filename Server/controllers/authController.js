@@ -6,6 +6,41 @@ const crypto = require("crypto");
 const sendEmail = require("../utils/email");
 const { promisify } = require("util");
 
+const multer = require("multer");
+
+// Set storage for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Where to store the file
+  },
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.split("/")[1]; // Get file extension
+    cb(null, `user-${req.user.id}-${Date.now()}.${ext}`); // Generate unique filename
+  },
+});
+
+// Multer upload configuration
+const upload = multer({ storage: storage });
+
+// Middleware to handle file uploads
+exports.uploadUserPhoto = upload.single("photo"); // 'photo' is the field name in your form
+
+// Resize the photo before saving it to disk
+exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
+  if (!req.file) return next(); // If no file is uploaded, move to next middleware
+
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+  // Use Sharp to resize and compress the image
+  await sharp(req.file.buffer) // Access the image buffer stored in memory
+    .resize(500, 500) // Resize to 500x500 pixels
+    .toFormat("jpeg") // Convert to JPEG format
+    .jpeg({ quality: 90 }) // Compress the image with 90% quality
+    .toFile(`uploads/${req.file.filename}`); // Save the resized image to disk
+
+  next(); // Call the next middleware (updateProfile) after resizing is done
+});
+
 // Token generation function
 function generateToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -58,46 +93,49 @@ exports.login = catchAsync(async (req, res, next) => {
   });
 });
 
+// //////Protect Middleware
 exports.protect = catchAsync(async (req, res, next) => {
+  // 1. Get the token from headers
   let token;
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
-    token = req.headers.authorization.split(" ")[1];
+    token = req.headers.authorization.split(" ")[1]; // Get token after 'Bearer'
   }
 
+  // 2. If token doesn't exist, throw an error
   if (!token) {
     return next(
       new AppError("You are not logged in! Please log in to get access.", 401)
     );
   }
 
+  // 3. Verify the token
   let decoded;
   try {
     decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   } catch (err) {
-    return next(new AppError("Invalid token. Please log in again.", 401));
+    return next(new AppError("Invalid token. Please log in again.", 401)); 
   }
 
-  const currentUser = await User.findById(decoded.id); // Make sure you are using decoded.id
-
+  // 4. Check if user still exists
+  const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
     return next(
-      new AppError(
-        "The user belonging to this token does no longer exist.",
-        401
-      )
+      new AppError("The user belonging to this token no longer exists.", 401)
     );
   }
 
+  // 5. Check if user changed password after the token was issued
   if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new AppError("User recently changed password! Please log in again.", 401)
     );
   }
 
-  req.user = currentUser; // Attach the current user to the request
+  // 6. Attach user to request
+  req.user = currentUser;
   next();
 });
 
@@ -215,5 +253,50 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     token,
+  });
+});
+
+exports.updateProfile = catchAsync(async (req, res, next) => {
+  // 1. Ensure that password updates are not done via this route
+  if (req.body.password || req.body.confirmPassword) {
+    return next(
+      new AppError(
+        "This route is not for updating password, please use /updatePassword.",
+        400
+      )
+    );
+  }
+
+  // 2. Create an empty object to store fields to update
+  const updatedFields = {};
+
+  // 3. Update user name and email if they are provided in the request body
+  if (req.body.name) updatedFields.name = req.body.name;
+  if (req.body.email) updatedFields.email = req.body.email;
+
+  // 4. If a photo was uploaded and resized, update the 'photo' field
+  if (req.file) updatedFields.photo = req.file.filename;
+
+  // 5. Check if there are actually fields to update
+  if (Object.keys(updatedFields).length === 0) {
+    return next(new AppError("No fields to update", 400));
+  }
+
+  // 6. Update the user's profile with the provided fields
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, updatedFields, {
+    new: true, // Return the updated document
+    runValidators: true, // Ensure validation is applied during update
+  });
+
+  // 7. Generate a new token if necessary (for example, if email was changed)
+  const token = generateToken(updatedUser._id); // You can opt not to generate a token if unnecessary
+
+  // 8. Send the updated user data in the response
+  res.status(200).json({
+    status: "success",
+    token, // Return new token if generated
+    data: {
+      user: updatedUser,
+    },
   });
 });
