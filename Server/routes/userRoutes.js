@@ -11,6 +11,8 @@ const {
   resizeUserPhoto,
 } = require("../controllers/authController");
 
+
+
 const router = express.Router();
 
 // Define signup and login routes
