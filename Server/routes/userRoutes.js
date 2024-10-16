@@ -5,6 +5,7 @@ const {
   forgotPassword,
   resetPassword,
   updatePassword,
+  deleteProfile,
   updateProfile,
   protect,
   uploadUserPhoto,
@@ -22,6 +23,7 @@ router.post("/login", login);
 router.post("/forgotpassword", forgotPassword);
 router.patch("/resetpassword/:token", resetPassword);
 router.patch("/updatepassword", protect, updatePassword);
+router.delete("/deleteProfile", protect, deleteProfile);
 router.patch(
   "/updateprofile",
   protect,

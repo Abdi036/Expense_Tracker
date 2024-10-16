@@ -300,3 +300,19 @@ exports.updateProfile = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.deleteProfile = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const user = await User.findByIdAndDelete(userId);
+
+  if (!user) {
+    return next(new AppError("No user found with this ID", 404));
+  }
+
+  res.status(204).json({
+    status: "success",
+    message: "Profile deleted successfully",
+    data: null,
+  });
+});

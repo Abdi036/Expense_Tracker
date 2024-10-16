@@ -2,29 +2,32 @@ const Product = require("../models/ProductModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
-// Create a new product (transaction)
 exports.createProduct = catchAsync(async (req, res, next) => {
-  const product = await Product.create(req.body);
+  const newProduct = await Product.create({
+    ...req.body,
+    user: req.user._id,
+  });
 
   res.status(201).json({
     status: "success",
-    message: "Product created successfully",
-    data: product,
+    data: {
+      product: newProduct,
+    },
   });
 });
 
 // Get all products (transactions)
 exports.getAllProducts = catchAsync(async (req, res, next) => {
-  const products = await Product.find();
+  const products = await Product.find({ user: req.user._id });
 
-  if (!products.length === 0) {
-    return next(new AppError("There is no Product Available", 404));
+  if (products.length === 0) {
+    return next(new AppError("No products found for this user", 404));
   }
 
   res.status(200).json({
     result: products.length,
     status: "success",
-    message: `${products.length} product(s) found`,
+    message: `${products.length} product(s) found for this user`,
     data: products,
   });
 });
