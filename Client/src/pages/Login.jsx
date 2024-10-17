@@ -50,7 +50,7 @@ export default function Login() {
     <div
       className={`bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8`}
     >
-      <div className="max-w-md w-full space-y-8 p-6 rounded-md shadow-lg bg-white dark:bg-gray-800">
+      <div className="max-w-md w-full space-y-8 p-6 rounded-md shadow-lg bg-white dark:bg-gray-800 mt-10">
         <div className="flex justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"

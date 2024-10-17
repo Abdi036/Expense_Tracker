@@ -3,10 +3,10 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/SignUp";
-import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import ProtectedRoutes from "./utils/ProtectedRoutes";
 import { AuthProvider } from "./utils/AuthContext";
+import ExpenseTracker from "./pages/ExpenceTracker";
 
 const App = () => {
   const userName = "John Doe";
@@ -22,8 +22,8 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route element={<ProtectedRoutes />}>
-              <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/expensetracker" element={<ExpenseTracker />} />
             </Route>
           </Routes>
         </div>
