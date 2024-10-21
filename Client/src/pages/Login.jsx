@@ -6,6 +6,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { loginUser, error } = useAuth();
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 

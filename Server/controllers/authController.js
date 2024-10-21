@@ -6,40 +6,16 @@ const crypto = require("crypto");
 const sendEmail = require("../utils/email");
 const { promisify } = require("util");
 
-const multer = require("multer");
-
-// Set storage for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Where to store the file
-  },
-  filename: (req, file, cb) => {
-    const ext = file.mimetype.split("/")[1]; // Get file extension
-    cb(null, `user-${req.user.id}-${Date.now()}.${ext}`); // Generate unique filename
-  },
-});
-
-// Multer upload configuration
-const upload = multer({ storage: storage });
-
-// Middleware to handle file uploads
-exports.uploadUserPhoto = upload.single("photo"); // 'photo' is the field name in your form
-
-// Resize the photo before saving it to disk
-exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
-  if (!req.file) return next(); // If no file is uploaded, move to next middleware
-
-  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
-
-  // Use Sharp to resize and compress the image
-  await sharp(req.file.buffer) // Access the image buffer stored in memory
-    .resize(500, 500) // Resize to 500x500 pixels
-    .toFormat("jpeg") // Convert to JPEG format
-    .jpeg({ quality: 90 }) // Compress the image with 90% quality
-    .toFile(`uploads/${req.file.filename}`); // Save the resized image to disk
-
-  next(); // Call the next middleware (updateProfile) after resizing is done
-});
+// function to filter out unwanted fields which is used in updateMyAccount
+function filterObj(obj, ...allowedFields) {
+  const newObj = {};
+  Object.keys(obj).forEach((key) => {
+    if (allowedFields.includes(key)) {
+      newObj[key] = obj[key];
+    }
+  });
+  return newObj;
+}
 
 // Token generation function
 function generateToken(id) {
@@ -73,14 +49,18 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // Check if both password and email exist
   if (!email || !password) {
-    return next(new AppError("All fields are required", 400));
+    return next(new AppError("Please provide email and password", 400));
   }
 
   // Check if user exists and password is correct
   const user = await User.findOne({ email }).select("+password");
 
-  if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError("Invalid email or password", 401));
+  if (!user) {
+    return next(new AppError("No user with this email!", 404));
+  }
+
+  if (!(await user.correctPassword(password, user.password))) {
+    return next(new AppError("Incorrect email or password", 401));
   }
 
   // Generate token if everything is okay
@@ -89,8 +69,10 @@ exports.login = catchAsync(async (req, res, next) => {
   // Send token to the client
   res.status(200).json({
     status: "success",
-    user,
     token,
+    data: {
+      user,
+    },
   });
 });
 
@@ -198,7 +180,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // Find the user with the hashed token and check if the token is still valid
   const user = await User.findOne({
     passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() }, // Check if the token is still valid
+    passwordResetExpires: { $gt: Date.now() },
   });
 
   if (!user) {
@@ -213,8 +195,8 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // Update the user's password
   user.password = req.body.password;
   user.confirmPassword = req.body.confirmPassword;
-  user.passwordResetToken = undefined; // Clear the reset token
-  user.passwordResetExpires = undefined; // Clear the expiration time
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
   await user.save();
 
   // Generate a new token for the user
@@ -268,34 +250,17 @@ exports.updateProfile = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 2. Create an empty object to store fields to update
-  const updatedFields = {};
+  // 2) Filter out unwanted fields
+  const filteredBody = filterObj(req.body, "name", "email", "photo");
 
-  // 3. Update user name and email if they are provided in the request body
-  if (req.body.name) updatedFields.name = req.body.name;
-  if (req.body.email) updatedFields.email = req.body.email;
-
-  // 4. If a photo was uploaded and resized, update the 'photo' field
-  if (req.file) updatedFields.photo = req.file.filename;
-
-  // 5. Check if there are actually fields to update
-  if (Object.keys(updatedFields).length === 0) {
-    return next(new AppError("No fields to update", 400));
-  }
-
-  // 6. Update the user's profile with the provided fields
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, updatedFields, {
-    new: true, // Return the updated document
-    runValidators: true, // Ensure validation is applied during update
+  // 3) Update user document
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true,
   });
 
-  // 7. Generate a new token if necessary (for example, if email was changed)
-  const token = generateToken(updatedUser._id); // You can opt not to generate a token if unnecessary
-
-  // 8. Send the updated user data in the response
   res.status(200).json({
     status: "success",
-    token, // Return new token if generated
     data: {
       user: updatedUser,
     },
@@ -303,9 +268,7 @@ exports.updateProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteProfile = catchAsync(async (req, res, next) => {
-  const userId = req.user._id;
-
-  const user = await User.findByIdAndDelete(userId);
+  const user = await User.findByIdAndDelete(req.user.id);
 
   if (!user) {
     return next(new AppError("No user found with this ID", 404));

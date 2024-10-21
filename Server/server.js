@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const path = require("path");
 
 // Import the auth routes
 const userRoutes = require("./routes/userRoutes");
@@ -23,7 +24,7 @@ app.use("/api/v1/product", productRoutes);
 
 // Global Error Handling Middleware
 app.use(globalErrorHandler);
-app.use("/uploads", express.static("uploads"));
+app.use("/userImage", express.static(path.join(__dirname, "userImage")));
 
 // Connect to MongoDB using mongoose
 mongoose

@@ -8,11 +8,9 @@ const {
   deleteProfile,
   updateProfile,
   protect,
-  uploadUserPhoto,
-  resizeUserPhoto,
 } = require("../controllers/authController");
 
-
+const { uploadUserPhoto, resizeUserPhoto } = require("../models/userModel");
 
 const router = express.Router();
 

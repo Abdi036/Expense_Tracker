@@ -1,7 +1,12 @@
+const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 const validator = require("validator");
-const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+
+const multer = require("multer");
+const sharp = require("sharp");
+const path = require("path");
+const fs = require("fs");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -12,7 +17,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     unique: true,
     required: [true, "User must have an email"],
-    lowercase: true, // Ensures email is stored in lowercase
+    lowercase: true,  
     validate: [validator.isEmail, "Please provide a valid email"],
   },
   password: {
@@ -57,6 +62,55 @@ userSchema.pre("save", async function (next) {
 userSchema.pre("save", function (next) {
   if (!this.isModified("password") || this.isNew) return next();
   this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+// Set up multer storage and file filter
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Not an image! Please upload only images."), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+userSchema.statics.uploadUserPhoto = upload.single("photo");
+
+// Middleware to handle image processing
+userSchema.statics.resizeUserPhoto = async (req, res, next) => {
+  if (!req.file) return next();
+
+  // Ensure the directory exists
+  const userDir = path.join(__dirname, "../userImage");
+  if (!fs.existsSync(userDir)) {
+    fs.mkdirSync(userDir, { recursive: true });
+  }
+
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
+    .resize(500, 500)
+    .toFormat("jpeg")
+    .jpeg({ quality: 90 })
+    .toFile(`${userDir}/${req.file.filename}`);
+
+  req.body.photo = req.file.filename;
+
+  next();
+};
+
+// Modify the user schema to save the photo
+userSchema.pre("save", function (next) {
+  if (!this.isModified("photo") && !this.isNew) return next();
+
+  this.photo = this.photo || "Unknown_person.jpg";
   next();
 });
 

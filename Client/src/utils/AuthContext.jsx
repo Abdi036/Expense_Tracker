@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react/prop-types */
+
 import { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -8,19 +9,21 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null); // Authenticated user data
-  const [loading, setLoading] = useState(true); // To check loading state during page refresh
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   // Check localStorage for token and user details on mount
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const username = localStorage.getItem("userName");
+    const email = localStorage.getItem("email");
+    const profilePic = localStorage.getItem("profilePic");
 
-    if (token && username) {
-      setUser({ token, name: username });
+    if (token && username && email) {
+      setUser({ token, name: username, email, profilePic });
     }
-    setLoading(false); // Loading done after checking
+    setLoading(false);
   }, []);
 
   const signupUser = async (name, email, password, confirmPassword) => {
@@ -54,10 +57,15 @@ export const AuthProvider = ({ children }) => {
       );
 
       if (response.data) {
-        setUser({ token: response.data.token, name: response.data.user.name });
+        setUser({
+          token: response.data.token,
+          name: response.data.data.user.name,
+          email: response.data.data.user.email,
+          profileImg: response.data.data.user.photo,
+        });
         localStorage.setItem("authToken", response.data.token);
-        localStorage.setItem("userName", response.data.user.name);
-        alert("Login successful ✨");
+        localStorage.setItem("userName", response.data.data.user.name);
+        localStorage.setItem("email", response.data.data.user.email);
         navigate("/expensetracker");
         return response;
       }
@@ -72,6 +80,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("authToken");
     localStorage.removeItem("userName");
+    localStorage.removeItem("email");
     navigate("/login");
   };
 
@@ -80,8 +89,9 @@ export const AuthProvider = ({ children }) => {
     signupUser,
     loginUser,
     logoutUser,
+    setUser,
     user,
-    loading, // Add loading state to context
+    loading,
   };
 
   return (
