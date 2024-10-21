@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
   },
   photo: {
     type: String,
-    default: "https://example.com/default-profile.jpg", // Update with actual URL
+    default: "Unknown_person.jpg",
   },
   createdAt: {
     type: Date,
