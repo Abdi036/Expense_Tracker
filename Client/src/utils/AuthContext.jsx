@@ -3,36 +3,81 @@
 
 import { createContext, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [loading, setLoading] = useState(false); // loading state while checking auth status
-  const [user, setUser] = useState(false); // state to hold the current user
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   // Signup function
-  // Signup function
-  const signupUser = async (email, password) => {};
+  const signupUser = async (name, email, password, confirmPassword) => {
+    setError(null);
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/v1/auth/signup",
+        { name, email, password, confirmPassword }
+      );
+
+      if (response.data.token) {
+        alert("Signup successful ✨");
+        navigate("/login");
+      } else {
+        setError("Signup failed: No token received");
+      }
+
+      return response;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Signup failed";
+      setError(errorMessage);
+      throw err;
+    }
+  };
 
   // Login function
-  const loginUser = async (email, password) => {};
+  const loginUser = async (email, password) => {
+    setError(null);
+    const response = await axios.post(
+      "http://localhost:5000/api/v1/auth/login",
+      { email, password }
+    );
 
-  // Check user status (to retain session)
-  const checkUserStatus = async () => {};
+    console.log(response);
+
+    if (response.data) {
+      setUser(true);
+      localStorage.setItem("authToken", response.data.token);
+      localStorage.setItem("userName", response.data.user.name);
+      alert("Login successful ✨");
+      navigate("/expensetracker");
+
+      return response;
+    }
+  };
+
+  // Logout function
+  const logoutUser = () => {
+    setUser(false);
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userName");
+    navigate("/login");
+  };
 
   const contextData = {
-    user,
-    loginUser,
+    error,
     signupUser,
+    loginUser,
+    logoutUser,
+    user,
   };
 
   return (
-    <AuthContext.Provider value={contextData}>
-      {loading ? <p>Loading...</p> : children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextData}>{children}</AuthContext.Provider>
   );
 };
 
-// Custom Hook for accessing AuthContext
 export const useAuth = () => useContext(AuthContext);
 
 export default AuthContext;

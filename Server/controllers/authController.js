@@ -89,6 +89,7 @@ exports.login = catchAsync(async (req, res, next) => {
   // Send token to the client
   res.status(200).json({
     status: "success",
+    user,
     token,
   });
 });

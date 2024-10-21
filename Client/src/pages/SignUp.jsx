@@ -1,82 +1,21 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../utils/AuthContext";
 
 export default function SignUp() {
-  const [nameError, setNameError] = useState(false);
-  const [nameErrorMessage, setNameErrorMessage] = useState("");
-  const [emailError, setEmailError] = useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = useState("");
-  const [passwordError, setPasswordError] = useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
-  const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] =
-    useState("");
+  const { signupUser, error } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const validateInputs = () => {
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
-    const confirmPassword = document.getElementById("confirm-password");
-    const name = document.getElementById("name");
-
-    let isValid = true;
-
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
-      setEmailError(true);
-      setEmailErrorMessage("Please enter a valid email address.");
-      isValid = false;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage("");
-    }
-
-    if (!password.value || password.value.length < 6) {
-      setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
-      isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage("");
-    }
-
-    if (!confirmPassword.value || confirmPassword.value !== password.value) {
-      setConfirmPasswordError(true);
-      setConfirmPasswordErrorMessage("Passwords do not match.");
-      isValid = false;
-    } else {
-      setConfirmPasswordError(false);
-      setConfirmPasswordErrorMessage("");
-    }
-
-    if (!name.value || name.value.length < 1) {
-      setNameError(true);
-      setNameErrorMessage("Name is required.");
-      isValid = false;
-    } else {
-      setNameError(false);
-      setNameErrorMessage("");
-    }
-
-    return isValid;
-  };
-
-  const handleSubmit = (event) => {
-    if (nameError || emailError || passwordError || confirmPasswordError) {
-      event.preventDefault();
-      return;
-    }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      name: data.get("name"),
-      lastName: data.get("lastName"),
-      email: data.get("email"),
-      password: data.get("password"),
-    });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    signupUser(fullName, email, password, confirmPassword);
   };
 
   return (
-    <div
-      className={`bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8`}
-    >
+    <div className="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 p-6 rounded-md shadow-lg bg-white dark:bg-gray-800 mt-16">
         <div className="flex justify-center">
           <svg
@@ -111,14 +50,10 @@ export default function SignUp() {
                 name="name"
                 type="text"
                 required
-                className={`appearance-none rounded relative block w-full px-3 py-2 border ${
-                  nameError ? "border-red-500" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                onChange={(e) => setFullName(e.target.value)}
+                className={`appearance-none rounded relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 placeholder="Jon Snow"
               />
-              {nameError && (
-                <p className="text-red-500 text-sm">{nameErrorMessage}</p>
-              )}
             </div>
 
             <div>
@@ -132,15 +67,11 @@ export default function SignUp() {
                 id="email"
                 name="email"
                 type="email"
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                className={`appearance-none rounded relative block w-full px-3 py-2 border ${
-                  emailError ? "border-red-500" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                className={`appearance-none rounded relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 placeholder="your@email.com"
               />
-              {emailError && (
-                <p className="text-red-500 text-sm">{emailErrorMessage}</p>
-              )}
             </div>
 
             <div>
@@ -154,15 +85,11 @@ export default function SignUp() {
                 id="password"
                 name="password"
                 type="password"
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                className={`appearance-none rounded relative block w-full px-3 py-2 border ${
-                  passwordError ? "border-red-500" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                className={`appearance-none rounded relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 placeholder="••••••"
               />
-              {passwordError && (
-                <p className="text-red-500 text-sm">{passwordErrorMessage}</p>
-              )}
             </div>
 
             <div>
@@ -176,30 +103,23 @@ export default function SignUp() {
                 id="confirm-password"
                 name="confirm-password"
                 type="password"
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className={`appearance-none rounded relative block w-full px-3 py-2 border ${
-                  confirmPasswordError ? "border-red-500" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                className={`appearance-none rounded relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 placeholder="••••••"
               />
-              {confirmPasswordError && (
-                <p className="text-red-500 text-sm">
-                  {confirmPasswordErrorMessage}
-                </p>
-              )}
             </div>
           </div>
-
           <div>
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              onClick={validateInputs}
             >
               Sign up
             </button>
           </div>
-
+          {error && <p className="text-red-500 text-center">{error}</p>}{" "}
+          {/* Display error message */}
           <div className="text-center">
             <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
               Already have an account?{" "}

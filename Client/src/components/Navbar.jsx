@@ -4,15 +4,18 @@ import { useAuth } from "../utils/AuthContext";
 import { useState } from "react";
 
 const Navbar = () => {
-  const { user } = useAuth();
+  const { user, logoutUser } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
+  let username = localStorage.getItem("userName");
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
   function handleLogout() {
+    setDropdownOpen(false);
+    logoutUser();
     return navigate("/login");
   }
 
@@ -22,7 +25,7 @@ const Navbar = () => {
       <div className="hidden md:flex space-x-4">
         {user ? (
           <>
-            <div className="px-20">Hello</div>
+            <div className="px-20">HELLO {username}</div>
           </>
         ) : (
           <button
@@ -33,6 +36,7 @@ const Navbar = () => {
           </button>
         )}
       </div>
+
       {/* right: Profile Picture and Name */}
       <div className="relative">
         {user ? (
@@ -41,7 +45,7 @@ const Navbar = () => {
             className="flex items-center focus:outline-none px-20"
           >
             {/* User Name */}
-            <span className="text-lg font-semibold px-2">sample name</span>
+            <span className="text-lg font-semibold px-2">{username}</span>
             {/* Profile Picture */}
             <img
               src={user.avatarUrl}
