@@ -15,12 +15,19 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, "Category is required"],
-      enum: ["Furniture", "Electronics", "Clothing", "Books", "Toys", "Other"],
+      enum: ["Furniture", "Electronics", "Clothing", "Books", "Food", "Other"],
     },
     payment: {
       type: String,
       required: [true, "Payment method is required"],
-      enum: ["Credit Card", "Debit Card", "PayPal", "Cash", "Other"],
+      enum: [
+        "Credit Card",
+        "Debit Card",
+        "PayPal",
+        "Cash",
+        "Bank Transfer",
+        "Other",
+      ],
     },
     user: {
       type: mongoose.Schema.ObjectId,

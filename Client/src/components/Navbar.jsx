@@ -12,11 +12,11 @@ const Navbar = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
-  function handleLogout() {
+  const handleLogout = () => {
     setDropdownOpen(false);
     logoutUser();
     navigate("/login");
-  }
+  };
 
   // Handle click outside to close the dropdown
   useEffect(() => {
@@ -34,14 +34,14 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="bg-slate-700 text-white shadow-md p-4 mb-20 flex items-center justify-between fixed z-10 w-full">
+    <nav className="bg-black text-white shadow-md p-4 mb-20 flex items-center justify-between fixed z-10 w-full">
       <div className="hidden md:flex space-x-4">
         {user ? (
           <button
             onClick={() => navigate("/expensetracker")}
             className="text-lg font-semibold px-5"
           >
-            Hello {user.name}
+            Hello 👋 {user.name.split(" ")[0]}
           </button>
         ) : (
           <button
@@ -59,10 +59,14 @@ const Navbar = () => {
             onClick={toggleDropdown}
             className="flex items-center focus:outline-none px-20"
           >
-            <span className="text-lg font-semibold px-2">{user.name}</span>
+            <span className="text-lg font-semibold px-2">{user?.name}</span>
             <img
-              src={user.profilePic || "/Unknown_person.jpg"}
-              alt="Profile"
+              src={
+                user?.profilePic && user.profilePic !== "Unknown_person.jpg"
+                  ? `http://localhost:5000/userImage/${user.profilePic}`
+                  : "/Unknown_person.jpg"
+              }
+              alt="Profile pic"
               className="w-10 h-10 rounded-full mr-2 border-2 border-blue-500"
             />
           </button>

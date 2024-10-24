@@ -1,12 +1,18 @@
 import { useState } from "react";
+import { useAuth } from "../utils/AuthContext";
 import UpdateProfile from "./UpdateProfile";
 import UpdatePassword from "./UpdatePassword";
 
 export default function Settings() {
   const [currentPage, setCurrentPage] = useState("updateProfile");
+  const { deleteProfile } = useAuth();
 
   const handleLinkClick = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleDeleteClick = () => {
+    deleteProfile();
   };
 
   const renderContent = () => {
@@ -43,7 +49,10 @@ export default function Settings() {
         >
           Update Password
         </button>
-        <button className="block mb-2 pb-2 border-b border-gray-400 w-full text-left text-red-600 text-red font-extrabold">
+        <button
+          onClick={handleDeleteClick}
+          className="block mb-2 pb-2 border-b border-gray-400 w-full text-left text-red-600 font-extrabold"
+        >
           Delete Profile
         </button>
       </div>
