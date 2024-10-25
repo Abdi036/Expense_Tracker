@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 const ExpenceTracker = () => {
   const { fetchProducts, addProduct, editProduct, deleteProduct, products } =
     useAuth();
-  const prices = [];
-  products.map((product) => {
-    prices.push(product.amount);
-  });
-  const totalExpense = prices.reduce((acc, cur) => acc + cur, 0);
+
+  const totalExpense = products.reduce(
+    (acc, product) => acc + product.amount,
+    0
+  );
 
   const [formData, setFormData] = useState({
     description: "",
@@ -289,7 +289,7 @@ const ExpenceTracker = () => {
           </tbody>
         </table>
       </div>
-      <div className="text-3xl ml-10">Total Expense:{totalExpense} $</div>
+      <div className="text-3xl ml-6">Total Expense:{totalExpense} $</div>
     </div>
   );
 };

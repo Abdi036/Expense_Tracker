@@ -28,11 +28,11 @@ app.use("/userImage", express.static(path.join(__dirname, "userImage")));
 
 // Connect to MongoDB using mongoose
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.REMOTE_MONGO_URI)
   .then(() => {
     console.log("Database connected Successfully");
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+    app.listen(5000, "0.0.0.0", () => {
+      console.log(`Server is running on port 5000`);
     });
   })
   .catch((error) => {
